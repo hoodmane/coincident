@@ -1,5 +1,5 @@
 // ⚠️ AUTOMATICALLY GENERATED - DO NOT CHANGE
-export const CHANNEL = '3099687a-04a9-4406-a08e-fd1602cb2a81';
+export const CHANNEL = '08401dd4-d0dc-43dd-8d53-610a0ea892c3';
 
 export const MAIN = 'M' + CHANNEL;
 export const THREAD = 'T' + CHANNEL;
