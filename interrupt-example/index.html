@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script src="../mini-coi.js"></script>
+    <style>
+      input[type="submit" i].disabled {
+        pointer-events: none;
+        background-color: rgba(239, 239, 239, 0.3);
+        color: rgba(16, 16, 16, 0.3);
+        border-color: rgba(118, 118, 118, 0.3);
+      }
+    </style>
+
+    <script type="module">
+      import coincident from "../window.js";
+      const worker = new Worker("./worker.js", { type: "module" });
+      const proxy = coincident(worker).proxy;
+      proxy.setInterruptBuffer = (ib) => {
+        globalThis.ib = ib;
+        cancel.addEventListener("click", keyboardInterrupt);
+      };
+      async function keyboardInterrupt() {
+        Atomics.store(ib, 0, 2);
+        const [_, submit] = document.querySelectorAll("input");
+        if (!submit.classList.contains("disabled")) {
+          submit.classList.add("disabled");
+          await Atomics.waitAsync(ib, 0, 2, 50).value;
+          // click submit button to clear once handler
+          submit.click();
+        }
+      }
+
+      const decoder = new TextDecoder();
+      proxy.output = (out) => {
+        output.innerText += decoder.decode(out);
+      };
+
+      proxy.input = (placeholder) =>
+        new Promise((resolve) => {
+          const [user, submit] = document.querySelectorAll("input");
+          user.placeholder = placeholder;
+          user.focus();
+          submit.classList.remove("disabled");
+          submit.addEventListener(
+            "click",
+            (event) => {
+              console.log("clicked");
+              event.preventDefault();
+              resolve(user.value.trim());
+              submit.classList.add("disabled");
+            },
+            { once: true }
+          );
+        });
+    </script>
+  </head>
+  <body>
+    <button id="cancel">Cancel</button>
+    <form id="question">
+      <input required />
+      <input type="submit" />
+    </form>
+    <div id="output" style="margin-top: 12pt"></div>
+  </body>
+</html>
